@@ -1,0 +1,26 @@
+[project]
+name = "check-docs"
+version = "0.1.0"
+description = "FastMCP server for document indexing and Git diff analysis with ChromaDB"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "fastmcp>=0.1.0",
+    "chromadb>=0.4.0",
+    "gitpython>=3.1.0",
+    "pydantic>=2.0.0",
+    "ollama>=0.1.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+check-docs = "server:main"
