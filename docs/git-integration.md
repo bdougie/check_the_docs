@@ -1,10 +1,10 @@
 # Git Integration Guide
 
-The Check Docs server provides powerful Git integration to analyze code changes and suggest documentation updates.
+The Check The Docs server provides powerful Git integration to analyze code changes and suggest documentation updates.
 
 ## How It Works
 
-The `check_docs` tool:
+The `check_the_docs` tool:
 1. Analyzes Git commit history
 2. Identifies changed code files
 3. Searches for related documentation
@@ -17,7 +17,7 @@ The `check_docs` tool:
 Analyze changes from the last 7 days:
 
 ```python
-results = await check_docs({
+results = await check_the_docs({
     "repo_path": "/path/to/your/repo",
     "since_days": 7
 })
@@ -28,7 +28,7 @@ results = await check_docs({
 Analyze a specific range of commits:
 
 ```python
-results = await check_docs({
+results = await check_the_docs({
     "repo_path": "/path/to/your/repo",
     "commit_range": "abc123..def456"
 })
@@ -39,7 +39,7 @@ results = await check_docs({
 Compare branches to find what needs documenting:
 
 ```python
-results = await check_docs({
+results = await check_the_docs({
     "repo_path": "/path/to/your/repo",
     "commit_range": "main..feature/new-api"
 })
@@ -111,8 +111,8 @@ Create `.git/hooks/pre-commit`:
 echo "Checking documentation..."
 uv run python -c "
 import asyncio
-from server import check_docs
-result = asyncio.run(check_docs({'repo_path': '.', 'since_days': 1}))
+from server import check_the_docs
+result = asyncio.run(check_the_docs({'repo_path': '.', 'since_days': 1}))
 if result['documentation_suggestions']:
     print('Documentation may need updates!')
 "

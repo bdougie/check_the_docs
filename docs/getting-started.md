@@ -1,6 +1,6 @@
-# Getting Started with Check Docs
+# Getting Started with Check The Docs
 
-Welcome to Check Docs! This guide will help you get up and running with document indexing and analysis.
+Welcome to Check The Docs! This guide will help you get up and running with document indexing and analysis.
 
 ## Installation
 
@@ -12,7 +12,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Clone and setup
 git clone <repository-url>
-cd check_docs
+cd check_the_docs
 uv sync
 ```
 

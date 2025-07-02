@@ -1,6 +1,6 @@
 # MCP Server Setup Guide
 
-This guide shows how to configure the Check Docs MCP server with different AI coding assistants.
+This guide shows how to configure the Check The Docs MCP server with different AI coding assistants.
 
 ## Claude Code (Claude Desktop)
 
@@ -9,37 +9,37 @@ Add to your `.mcp.json` file:
 ```json
 {
   "mcpServers": {
-    "check_docs": {
+    "check_the_docs": {
       "command": "uv",
       "args": ["run", "python", "server.py"],
-      "cwd": "/path/to/your/check_docs"
+      "cwd": "/path/to/your/check_the_docs"
     }
   }
 }
 ```
 
-Replace `/path/to/your/check_docs` with your actual project path.
+Replace `/path/to/your/check_the_docs` with your actual project path.
 
 ## Continue.dev
 
 Create a YAML configuration file at `.continue/mcpServers/mcp-server.yaml`:
 
 ```yaml
-name: Check Docs MCP server
+name: Check The Docs MCP server
 version: 0.0.1
 schema: v1
 mcpServers:
-  - name: check_docs
+  - name: check_the_docs
     command: uv
     args:
       - --directory
-      - /path/to/your/check_docs
+      - /path/to/your/check_the_docs
       - run
       - python
       - server.py
 ```
 
-Replace `/path/to/your/check_docs` with your actual project path.
+Replace `/path/to/your/check_the_docs` with your actual project path.
 
 ## Usage
 
@@ -47,7 +47,7 @@ Once configured, you can use the MCP tools:
 
 - `index_documentation`: Index markdown files from a folder
 - `search_documents`: Search through indexed documentation
-- `check_docs`: Analyze Git changes and suggest doc updates
+- `check_the_docs`: Analyze Git changes and suggest doc updates
 
 ## Testing the Setup
 

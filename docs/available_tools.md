@@ -15,7 +15,7 @@ Search indexed documentation using semantic similarity.
 - `collection_name` (str): Collection to search (default: "documents")
 - `n_results` (int): Number of results to return (default: 5)
 
-## `check_docs`
+## `check_the_docs`
 Analyze Git repository changes and suggest documentation updates.
 
 **Parameters:**

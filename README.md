@@ -1,4 +1,4 @@
-# Check Docs - FastMCP Document Indexing Server
+# Check The Docs - FastMCP Document Indexing Server
 
 A FastMCP server that uses ChromaDB for semantic document indexing and Git diff analysis to identify documentation that needs updates when code changes.
 
@@ -36,7 +36,7 @@ A FastMCP server that uses ChromaDB for semantic document indexing and Git diff 
 ```bash
 # Clone the repository
 git clone <your-repo-url>
-cd check_docs
+cd check_the_docs
 
 # Install dependencies with uv
 uv sync
@@ -56,17 +56,17 @@ name: Check Docs MCP server
 version: 0.0.1
 schema: v1
 mcpServers:
-  - name: check_docs
+  - name: check_the_docs
     command: uv
     args:
       - --directory
-      - /path/to/your/check_docs
+      - /path/to/your/check_the_docs
       - run
       - python
       - server.py
 ```
 
-Replace `/path/to/your/check_docs` with your actual project path.
+Replace `/path/to/your/check_the_docs` with your actual project path.
 
 ## Usage Examples
 
@@ -124,7 +124,7 @@ uv run pytest
 ### Project Structure
 
 ```
-check_docs/
+check_the_docs/
 ├── server.py          # Main FastMCP server implementation
 ├── pyproject.toml     # Project configuration
 ├── README.md          # This file

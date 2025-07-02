@@ -1,6 +1,6 @@
 # Advanced Features
 
-This guide covers advanced features of the Check Docs server.
+This guide covers advanced features of the Check The Docs server.
 
 ## Custom Chunking Strategies
 
@@ -29,12 +29,12 @@ async def batch_index(folder_path: str, batch_size: int = 10):
 
 ## Git Integration
 
-The `check_docs` tool analyzes Git repositories to identify documentation that needs updates.
+The `check_the_docs` tool analyzes Git repositories to identify documentation that needs updates.
 
 ### Analyzing Specific Branches
 
 ```python
-suggestions = await check_docs({
+suggestions = await check_the_docs({
     "repo_path": "/path/to/repo",
     "commit_range": "develop..feature/new-api"
 })
@@ -42,7 +42,7 @@ suggestions = await check_docs({
 
 ### Custom Code Extensions
 
-Add support for additional file types by modifying the `code_extensions` set in the `check_docs` function.
+Add support for additional file types by modifying the `code_extensions` set in the `check_the_docs` function.
 
 ## Performance Optimization
 
