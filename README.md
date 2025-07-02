@@ -91,6 +91,22 @@ Check which docs need updates based on code changes:
 Check what documentation needs updating based on recent Git changes
 ```
 
+### Self-Documentation Check
+
+Use the project on itself to ensure all features are documented:
+
+1. First, index the project's own documentation:
+   ```
+   index_docs ./
+   ```
+
+2. Then check if all code features are covered:
+   ```
+   Check docs to see if all features in server.py are covered in the documentation
+   ```
+
+This will analyze the codebase and suggest any missing documentation for new features or tools.
+
 For detailed information about available MCP tools, see [available_tools.md](available_tools.md).
 
 ## Development
