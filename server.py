@@ -19,10 +19,7 @@ class CheckDocsRequest(BaseModel):
     since_days: Optional[int] = 7
 
 # Initialize FastMCP server
-mcp = FastMCP(
-    name="ChromaDB Document Server",
-    description="Document indexing with Git diff analysis"
-)
+mcp = FastMCP("ChromaDB Document Server")
 
 # ChromaDB manager
 class ChromaDBManager:

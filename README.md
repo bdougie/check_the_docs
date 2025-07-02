@@ -47,108 +47,51 @@ source .venv/bin/activate  # On macOS/Linux
 .venv\Scripts\activate  # On Windows
 ```
 
-### 2. Start the Server
+### 2. Configure Continue
 
-```bash
-# Run the FastMCP server
-uv run python server.py
+Create a YAML configuration file at `.continue/mcpServers/mcp-server.yaml`:
+
+```yaml
+name: Check Docs MCP server
+version: 0.0.1
+schema: v1
+mcpServers:
+  - name: check_docs
+    command: uv
+    args:
+      - --directory
+      - /path/to/your/check_docs
+      - run
+      - python
+      - server.py
 ```
 
-The server will start on the default FastMCP port and be ready to accept connections.
-
-### 3. Connect with Claude Desktop
-
-Add the server to your Claude Desktop configuration:
-
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-
-```json
-{
-  "mcpServers": {
-    "check-docs": {
-      "command": "uv",
-      "args": ["run", "python", "/path/to/check_docs/server.py"],
-      "cwd": "/path/to/check_docs"
-    }
-  }
-}
-```
-
-Restart Claude Desktop to load the server.
+Replace `/path/to/your/check_docs` with your actual project path.
 
 ## Usage Examples
 
 ### Index Documentation
 
-```python
-# Index all markdown files in a directory
-await index_documentation(
-    folder_path="/path/to/docs",
-    collection_name="my_project_docs"
-)
+In Continue Agent, ask to index the example docs:
+```
+index_docs ./docs # or  path to your docs folder
 ```
 
 ### Search Documentation
 
-```python
-# Search for relevant documentation
-results = await search_documentation(
-    query="how to implement authentication",
-    collection_name="my_project_docs",
-    n_results=5
-)
+Search through indexed documentation:
+```
+Search docs for "git integration"
 ```
 
 ### Analyze Code Changes
 
-```python
-# Check which docs need updates based on recent code changes
-suggestions = await check_docs({
-    "repo_path": "/path/to/repo",
-    "since_days": 7  # Check changes from last 7 days
-})
-
-# Or check specific commit range
-suggestions = await check_docs({
-    "repo_path": "/path/to/repo",
-    "commit_range": "main..feature-branch"
-})
+Check which docs need updates based on code changes:
+```
+Check what documentation needs updating based on recent Git changes
 ```
 
-## Available Tools
-
-### `index_documentation`
-Index markdown documentation from a folder into ChromaDB.
-
-**Parameters:**
-- `folder_path` (str): Path to the documentation folder
-- `collection_name` (str): Name for the ChromaDB collection (default: "documents")
-
-### `search_documentation`
-Search indexed documentation using semantic similarity.
-
-**Parameters:**
-- `query` (str): Natural language search query
-- `collection_name` (str): Collection to search (default: "documents")
-- `n_results` (int): Number of results to return (default: 5)
-
-### `check_docs`
-Analyze Git repository changes and suggest documentation updates.
-
-**Parameters:**
-- `repo_path` (str): Path to the Git repository
-- `commit_range` (str, optional): Specific commit range to analyze
-- `since_days` (int, optional): Analyze changes from last N days (default: 7)
-
-### `list_collections`
-List all available document collections in ChromaDB.
-
-### `delete_collection`
-Delete a specific document collection.
-
-**Parameters:**
-- `collection_name` (str): Name of collection to delete
+For detailed information about available MCP tools, see [available_tools.md](available_tools.md).
 
 ## Development
 

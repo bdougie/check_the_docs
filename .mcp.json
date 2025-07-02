@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "check_docs": {
+      "command": "uv",
+      "args": ["run", "python", "server.py"],
+      "cwd": "/Users/briandouglas/code/check_docs"
+    }
+  }
+}
