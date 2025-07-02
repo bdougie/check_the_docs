@@ -38,7 +38,7 @@ class TestDocumentProcessor:
         chunks = doc_processor.process_markdown("", "empty.md")
         
         assert len(chunks) == 1
-        assert chunks[0]["content"] == ""
+        assert chunks[0]["content"] == "search_document: "  # Empty content gets prefix
         assert chunks[0]["metadata"]["file_path"] == "empty.md"
     
     def test_process_markdown_chunking(self):
@@ -62,7 +62,7 @@ class TestDocumentProcessor:
     def test_chunk_text_simple(self, doc_processor):
         """Test simple text chunking"""
         text = "Short text"
-        chunks = doc_processor.chunk_text(text)
+        chunks = doc_processor._chunk_text(text)  # Use private method
         
         assert len(chunks) == 1
         assert chunks[0] == text
@@ -72,7 +72,7 @@ class TestDocumentProcessor:
         processor = DocumentProcessor(chunk_size=20, chunk_overlap=5)
         text = "This is a very long piece of text that should be split into multiple chunks for testing purposes."
         
-        chunks = processor.chunk_text(text)
+        chunks = processor._chunk_text(text)  # Use private method
         
         assert len(chunks) > 1
         assert all(len(chunk) <= processor.chunk_size + 20 for chunk in chunks)  # Allow variance for breaking points
@@ -82,7 +82,7 @@ class TestDocumentProcessor:
         processor = DocumentProcessor(chunk_size=30, chunk_overlap=5)
         text = "First paragraph.\n\nSecond paragraph.\n\nThird paragraph."
         
-        chunks = processor.chunk_text(text)
+        chunks = processor._chunk_text(text)  # Use private method
         
         # Should break at paragraph boundaries when possible
         assert len(chunks) >= 1
