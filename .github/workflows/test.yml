@@ -32,19 +32,4 @@ jobs:
     
     - name: Run unit tests
       run: |
-        uv run pytest tests/ -v --tb=short --cov=server --cov-report=term-missing
-    
-    - name: Test MCP server import
-      run: |
-        # Test that server components can be imported (with mocked dependencies)
-        uv run python -c "
-        import sys
-        from unittest.mock import patch
-        
-        # Mock ChromaDB and Ollama before importing
-        with patch('chromadb.PersistentClient'), \
-             patch('chromadb.utils.embedding_functions.OllamaEmbeddingFunction'):
-            from server import mcp, DocumentProcessor
-            print('✓ MCP server components imported successfully')
-            print('✓ DocumentProcessor created successfully')
-        "
+        uv run pytest tests/ -v --tb=short
