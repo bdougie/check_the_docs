@@ -32,11 +32,10 @@ mcpServers:
   - name: check_the_docs
     command: uv
     args:
-      - --directory
-      - /path/to/your/check_the_docs
       - run
       - python
       - server.py
+    cwd: /path/to/your/check_the_docs
 ```
 
 Replace `/path/to/your/check_the_docs` with your actual project path.
