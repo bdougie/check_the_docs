@@ -106,7 +106,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 
 ## Git diff analysis for documentation updates
 
-The check_docs function should analyze Git diffs to identify documentation requiring updates based on code changes. **GitPython** is recommended for ease of use, while **pygit2** offers better performance for large repositories.
+The check_the_docs function should analyze Git diffs to identify documentation requiring updates based on code changes. **GitPython** is recommended for ease of use, while **pygit2** offers better performance for large repositories.
 
 **Core analysis strategies:**
 1. **Path-based analysis**: Identify changed code files and corresponding documentation
@@ -116,7 +116,7 @@ The check_docs function should analyze Git diffs to identify documentation requi
 **Implementation pattern:**
 ```python
 class DocumentationChecker:
-    def check_docs(self, commit_range=None, since_days=None):
+    def check_the_docs(self, commit_range=None, since_days=None):
         # Extract code changes
         code_changes = self._extract_code_changes(diff_index)
         
@@ -259,7 +259,7 @@ async def index_documentation(
         raise
 
 @mcp.tool()
-async def check_docs(
+async def check_the_docs(
     request: CheckDocsRequest,
     ctx: Context = None
 ) -> Dict:

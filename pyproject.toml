@@ -28,4 +28,4 @@ build-backend = "hatchling.build"
 packages = ["."]
 
 [project.scripts]
-check_docs = "server:main"
+check_the_docs = "server:main"

@@ -36,7 +36,7 @@ A FastMCP server that uses ChromaDB for semantic document indexing and Git diff 
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/bdougie/check_the_docs
 cd check_the_docs
 
 # Install dependencies with uv

@@ -339,7 +339,7 @@ async def index_documentation(
         raise
 
 @mcp.tool()
-async def check_docs(
+async def check_the_docs(
     request: CheckDocsRequest,
     ctx: Context = None
 ) -> Dict:
