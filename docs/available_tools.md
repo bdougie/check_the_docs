@@ -49,3 +49,57 @@ This tool captures actual git diff content, analyzes the significance of changes
 - Significant code changes that require documentation updates
 
 The indexed diff content can then be cross-referenced with existing documentation to identify gaps and suggest updates.
+
+## `chroma_status`
+Check ChromaDB connection status and configuration.
+
+**Description:**
+Returns information about the current ChromaDB client including:
+- Client type (local or cloud)
+- Version information
+- Available collections
+- Authentication status
+- Connection details
+
+## `copy_to_cloud`
+Copy local ChromaDB collections to ChromaDB Cloud.
+
+**Parameters:**
+- `tenant` (str): ChromaDB Cloud tenant name
+- `database` (str): ChromaDB Cloud database name
+- `collection_names` (List[str], optional): Specific collections to copy (default: all collections)
+
+**Description:**
+Copies all or specified collections from local ChromaDB to ChromaDB Cloud. Handles batch uploads for large collections and provides progress updates during the copy process.
+
+## `configure_chroma_cloud`
+Configure ChromaDB Cloud settings and switch from local to cloud mode.
+
+**Parameters:**
+- `tenant` (str): ChromaDB Cloud tenant name
+- `database` (str): ChromaDB Cloud database name
+- `api_key` (str, optional): ChromaDB Cloud API key for programmatic access
+
+**Description:**
+Dynamically configures ChromaDB Cloud settings, sets environment variables, and reinitializes the ChromaDB manager to use cloud mode. Tests the connection and provides feedback on success or failure.
+
+## `switch_to_local`
+Switch from ChromaDB Cloud to local ChromaDB.
+
+**Parameters:**
+- `local_path` (str, optional): Path to local ChromaDB storage (default: "./chroma_db")
+
+**Description:**
+Switches from ChromaDB Cloud back to local ChromaDB, clears cloud environment variables, and reinitializes the ChromaDB manager with local settings.
+
+## `copy_from_cloud`
+Copy ChromaDB Cloud collections to local ChromaDB.
+
+**Parameters:**
+- `tenant` (str): ChromaDB Cloud tenant name
+- `database` (str): ChromaDB Cloud database name
+- `collection_names` (List[str], optional): Specific collections to copy (default: all collections)
+- `local_path` (str, optional): Path to local ChromaDB storage (default: "./chroma_db")
+
+**Description:**
+Copies collections from ChromaDB Cloud to local ChromaDB storage. Useful for backing up cloud data locally or migrating from cloud to local setup.

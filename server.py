@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from datetime import datetime
 import json
 import re
+import os
 
 class DocumentInput(BaseModel):
     content: str
@@ -26,8 +27,48 @@ mcp = FastMCP("ChromaDB Document Server")
 class ChromaDBManager:
     def __init__(self, persist_path="./chroma_db"):
         self.persist_path = persist_path
-        self.client = chromadb.PersistentClient(path=persist_path)
+        self.use_cloud = self._should_use_cloud()
+        
+        if self.use_cloud:
+            self.client = self._get_cloud_client()
+        else:
+            self.client = chromadb.PersistentClient(path=persist_path)
+            
         self.ef = self._get_ollama_embedding_function()
+    
+    def _should_use_cloud(self) -> bool:
+        """Check if we should use ChromaDB Cloud based on environment variables"""
+        return bool(os.getenv("CHROMA_CLOUD_TENANT") and os.getenv("CHROMA_CLOUD_DATABASE"))
+    
+    def _get_cloud_client(self):
+        """Initialize ChromaDB Cloud client"""
+        try:
+            tenant = os.getenv("CHROMA_CLOUD_TENANT")
+            database = os.getenv("CHROMA_CLOUD_DATABASE")
+            api_key = os.getenv("CHROMA_CLOUD_API_KEY")
+            
+            if not all([tenant, database]):
+                raise ValueError("CHROMA_CLOUD_TENANT and CHROMA_CLOUD_DATABASE must be set for cloud mode")
+            
+            # Create cloud client
+            if api_key:
+                return chromadb.HttpClient(
+                    host=f"https://api.trychroma.com",
+                    settings=chromadb.Settings(
+                        chroma_client_auth_provider="token",
+                        chroma_client_auth_credentials=api_key
+                    )
+                )
+            else:
+                # Use CLI authentication (assuming user ran `chroma login`)
+                return chromadb.CloudClient(
+                    tenant=tenant,
+                    database=database
+                )
+        except Exception as e:
+            print(f"Failed to initialize ChromaDB Cloud client: {e}")
+            print("Falling back to local ChromaDB...")
+            return chromadb.PersistentClient(path=self.persist_path)
     
     def _get_ollama_embedding_function(self):
         from chromadb.utils.embedding_functions import OllamaEmbeddingFunction
@@ -44,6 +85,22 @@ class ChromaDBManager:
                 name=name,
                 embedding_function=self.ef
             )
+    
+    def get_client_info(self) -> Dict:
+        """Get information about the current ChromaDB client"""
+        if self.use_cloud:
+            return {
+                "type": "cloud",
+                "tenant": os.getenv("CHROMA_CLOUD_TENANT"),
+                "database": os.getenv("CHROMA_CLOUD_DATABASE"),
+                "authenticated": True if hasattr(self.client, 'tenant') else False
+            }
+        else:
+            return {
+                "type": "local",
+                "path": self.persist_path,
+                "authenticated": True
+            }
 
 # Document processor
 class DocumentProcessor:
@@ -504,6 +561,257 @@ async def delete_collection(
         return f"Successfully deleted collection: {collection_name}"
     except Exception as e:
         await ctx.error(f"Failed to delete collection: {str(e)}")
+        raise
+
+@mcp.tool()
+async def chroma_status(ctx: Context = None) -> Dict:
+    """Check ChromaDB connection status and configuration"""
+    try:
+        client_info = chroma_manager.get_client_info()
+        collections = chroma_manager.client.list_collections()
+        collection_names = [col.name for col in collections]
+        
+        # Test connection by trying to get version
+        try:
+            version = chroma_manager.client.get_version()
+        except:
+            version = "unknown"
+        
+        status = {
+            "client_type": client_info["type"],
+            "version": version,
+            "collections": collection_names,
+            "total_collections": len(collection_names),
+            "authenticated": client_info["authenticated"]
+        }
+        
+        if client_info["type"] == "cloud":
+            status["tenant"] = client_info["tenant"]
+            status["database"] = client_info["database"]
+        else:
+            status["local_path"] = client_info["path"]
+        
+        await ctx.info(f"ChromaDB Status: {client_info['type']} mode with {len(collection_names)} collections")
+        return status
+        
+    except Exception as e:
+        await ctx.error(f"Failed to get ChromaDB status: {str(e)}")
+        raise
+
+@mcp.tool()
+async def configure_chroma_cloud(
+    tenant: str,
+    database: str,
+    api_key: Optional[str] = None,
+    ctx: Context = None
+) -> str:
+    """Configure ChromaDB Cloud settings and switch from local to cloud mode"""
+    try:
+        await ctx.info(f"Configuring ChromaDB Cloud: {tenant}/{database}")
+        
+        # Set environment variables
+        os.environ["CHROMA_CLOUD_TENANT"] = tenant
+        os.environ["CHROMA_CLOUD_DATABASE"] = database
+        
+        if api_key:
+            os.environ["CHROMA_CLOUD_API_KEY"] = api_key
+            await ctx.info("API key configured for programmatic access")
+        
+        # Reinitialize the ChromaDB manager with cloud settings
+        global chroma_manager
+        chroma_manager = ChromaDBManager()
+        
+        # Test the connection
+        try:
+            collections = chroma_manager.client.list_collections()
+            collection_count = len(collections)
+            
+            if chroma_manager.use_cloud:
+                await ctx.info(f"Successfully connected to ChromaDB Cloud with {collection_count} collections")
+                return f"ChromaDB Cloud configured successfully: {tenant}/{database} ({collection_count} collections)"
+            else:
+                await ctx.warning("Failed to connect to ChromaDB Cloud, using local fallback")
+                return f"ChromaDB Cloud configuration failed, using local fallback"
+                
+        except Exception as e:
+            await ctx.error(f"Failed to test cloud connection: {str(e)}")
+            return f"ChromaDB Cloud configuration failed: {str(e)}"
+        
+    except Exception as e:
+        await ctx.error(f"Cloud configuration failed: {str(e)}")
+        raise
+
+@mcp.tool()
+async def switch_to_local(
+    local_path: Optional[str] = "./chroma_db",
+    ctx: Context = None
+) -> str:
+    """Switch from ChromaDB Cloud to local ChromaDB"""
+    try:
+        await ctx.info("Switching to local ChromaDB")
+        
+        # Clear cloud environment variables
+        for key in ["CHROMA_CLOUD_TENANT", "CHROMA_CLOUD_DATABASE", "CHROMA_CLOUD_API_KEY"]:
+            if key in os.environ:
+                del os.environ[key]
+        
+        # Reinitialize the ChromaDB manager with local settings
+        global chroma_manager
+        chroma_manager = ChromaDBManager(persist_path=local_path)
+        
+        # Test the connection
+        collections = chroma_manager.client.list_collections()
+        collection_count = len(collections)
+        
+        await ctx.info(f"Successfully switched to local ChromaDB with {collection_count} collections")
+        return f"Switched to local ChromaDB: {local_path} ({collection_count} collections)"
+        
+    except Exception as e:
+        await ctx.error(f"Failed to switch to local: {str(e)}")
+        raise
+
+@mcp.tool()
+async def copy_to_cloud(
+    tenant: str,
+    database: str,
+    collection_names: Optional[List[str]] = None,
+    ctx: Context = None
+) -> str:
+    """Copy local ChromaDB collections to ChromaDB Cloud"""
+    try:
+        if chroma_manager.use_cloud:
+            return "Already using ChromaDB Cloud. No copy needed."
+        
+        await ctx.info(f"Copying collections to ChromaDB Cloud: {tenant}/{database}")
+        
+        # Get local collections
+        local_collections = chroma_manager.client.list_collections()
+        collections_to_copy = collection_names or [col.name for col in local_collections]
+        
+        # Create temporary cloud client
+        os.environ["CHROMA_CLOUD_TENANT"] = tenant
+        os.environ["CHROMA_CLOUD_DATABASE"] = database
+        
+        cloud_manager = ChromaDBManager()
+        
+        if not cloud_manager.use_cloud:
+            return "Failed to connect to ChromaDB Cloud. Please check your environment variables."
+        
+        copied_count = 0
+        for collection_name in collections_to_copy:
+            try:
+                await ctx.info(f"Copying collection: {collection_name}")
+                
+                # Get local collection
+                local_collection = chroma_manager.client.get_collection(name=collection_name)
+                
+                # Get all documents from local collection
+                results = local_collection.get()
+                
+                if results['ids']:
+                    # Create cloud collection
+                    cloud_collection = cloud_manager.get_or_create_collection(collection_name)
+                    
+                    # Batch upload to cloud
+                    batch_size = 100
+                    for i in range(0, len(results['ids']), batch_size):
+                        batch_ids = results['ids'][i:i+batch_size]
+                        batch_docs = results['documents'][i:i+batch_size]
+                        batch_metadata = results['metadatas'][i:i+batch_size]
+                        
+                        cloud_collection.add(
+                            ids=batch_ids,
+                            documents=batch_docs,
+                            metadatas=batch_metadata
+                        )
+                    
+                    copied_count += 1
+                    await ctx.report_progress(copied_count, len(collections_to_copy))
+                    
+            except Exception as e:
+                await ctx.warning(f"Failed to copy collection {collection_name}: {str(e)}")
+                continue
+        
+        await ctx.info(f"Successfully copied {copied_count} collections to ChromaDB Cloud")
+        return f"Copied {copied_count} collections to ChromaDB Cloud: {tenant}/{database}"
+        
+    except Exception as e:
+        await ctx.error(f"Cloud copy failed: {str(e)}")
+        raise
+
+@mcp.tool()
+async def copy_from_cloud(
+    tenant: str,
+    database: str,
+    collection_names: Optional[List[str]] = None,
+    local_path: Optional[str] = "./chroma_db",
+    ctx: Context = None
+) -> str:
+    """Copy ChromaDB Cloud collections to local ChromaDB"""
+    try:
+        await ctx.info(f"Copying collections from ChromaDB Cloud: {tenant}/{database}")
+        
+        # Create temporary cloud client
+        temp_env = os.environ.copy()
+        os.environ["CHROMA_CLOUD_TENANT"] = tenant
+        os.environ["CHROMA_CLOUD_DATABASE"] = database
+        
+        cloud_manager = ChromaDBManager()
+        
+        if not cloud_manager.use_cloud:
+            return "Failed to connect to ChromaDB Cloud. Please check your credentials."
+        
+        # Get cloud collections
+        cloud_collections = cloud_manager.client.list_collections()
+        collections_to_copy = collection_names or [col.name for col in cloud_collections]
+        
+        # Create local client
+        local_manager = ChromaDBManager(persist_path=local_path)
+        
+        copied_count = 0
+        for collection_name in collections_to_copy:
+            try:
+                await ctx.info(f"Copying collection: {collection_name}")
+                
+                # Get cloud collection
+                cloud_collection = cloud_manager.client.get_collection(name=collection_name)
+                
+                # Get all documents from cloud collection
+                results = cloud_collection.get()
+                
+                if results['ids']:
+                    # Create local collection
+                    local_collection = local_manager.get_or_create_collection(collection_name)
+                    
+                    # Batch upload to local
+                    batch_size = 100
+                    for i in range(0, len(results['ids']), batch_size):
+                        batch_ids = results['ids'][i:i+batch_size]
+                        batch_docs = results['documents'][i:i+batch_size]
+                        batch_metadata = results['metadatas'][i:i+batch_size]
+                        
+                        local_collection.add(
+                            ids=batch_ids,
+                            documents=batch_docs,
+                            metadatas=batch_metadata
+                        )
+                    
+                    copied_count += 1
+                    await ctx.report_progress(copied_count, len(collections_to_copy))
+                    
+            except Exception as e:
+                await ctx.warning(f"Failed to copy collection {collection_name}: {str(e)}")
+                continue
+        
+        # Restore original environment
+        os.environ.clear()
+        os.environ.update(temp_env)
+        
+        await ctx.info(f"Successfully copied {copied_count} collections from ChromaDB Cloud")
+        return f"Copied {copied_count} collections from ChromaDB Cloud to local: {local_path}"
+        
+    except Exception as e:
+        await ctx.error(f"Cloud copy failed: {str(e)}")
         raise
 
 @mcp.tool()

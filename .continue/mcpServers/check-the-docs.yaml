@@ -4,9 +4,8 @@ schema: v1
 mcpServers:
   - name: check_docs
     command: uv
+    cwd: /Users/briandouglas/code/check_docs
     args:
-      - --directory
-      - /Users/briandouglas/code/check_docs
       - run
       - python
       - server.py

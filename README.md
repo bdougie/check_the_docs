@@ -9,6 +9,7 @@ A FastMCP server that uses ChromaDB for semantic document indexing and Git diff 
 - 📝 **Git Diff Analysis**: Automatically identify documentation that needs updates based on code changes
 - 🚀 **Fast Embeddings**: Uses Ollama's nomic-embed-text model for high-quality embeddings
 - 💾 **Persistent Storage**: ChromaDB for reliable vector storage
+- ☁️ **Cloud Support**: ChromaDB Cloud integration for scalable, persistent storage
 
 ## Prerequisites
 
@@ -59,11 +60,10 @@ mcpServers:
   - name: check_the_docs
     command: uv
     args:
-      - --directory
-      - /path/to/your/check_the_docs
       - run
       - python
       - server.py
+   cwd: .
 ```
 
 Replace `/path/to/your/check_the_docs` with your actual project path.
@@ -109,6 +109,45 @@ This will analyze the codebase and suggest any missing documentation for new fea
 
 For detailed information about available MCP tools, see [available_tools.md](available_tools.md).
 
+## ChromaDB Cloud Setup
+
+To use ChromaDB Cloud for scalable, persistent storage, you can configure it directly through MCP tools:
+
+### Quick Setup (MCP Tools)
+
+```bash
+# 1. Configure ChromaDB Cloud and switch to cloud mode
+configure_chroma_cloud your-tenant-name your-database-name
+
+# 2. Copy existing local data to cloud (optional)
+copy_to_cloud your-tenant-name your-database-name
+
+# 3. Verify cloud connection
+chroma_status
+```
+
+### Available MCP Configuration Tools
+
+- `configure_chroma_cloud` - Set up and switch to ChromaDB Cloud
+- `switch_to_local` - Switch back to local ChromaDB
+- `copy_to_cloud` - Copy local collections to cloud
+- `copy_from_cloud` - Copy cloud collections to local
+- `chroma_status` - Check current configuration and connection
+
+### Manual Setup (Environment Variables)
+
+```bash
+# Set environment variables
+export CHROMA_CLOUD_TENANT="your-tenant-name"
+export CHROMA_CLOUD_DATABASE="your-database-name"
+
+# Copy data and verify
+copy_to_cloud your-tenant-name your-database-name
+chroma_status
+```
+
+For detailed setup instructions, see [chroma-cloud-setup.md](docs/chroma-cloud-setup.md).
+
 ## Development
 
 ### Running Tests
@@ -137,6 +176,9 @@ check_the_docs/
 
 - `OLLAMA_HOST`: Ollama API endpoint (default: http://localhost:11434)
 - `CHROMA_DB_PATH`: ChromaDB storage path (default: ./chroma_db)
+- `CHROMA_CLOUD_TENANT`: ChromaDB Cloud tenant name (optional, for cloud mode)
+- `CHROMA_CLOUD_DATABASE`: ChromaDB Cloud database name (optional, for cloud mode)
+- `CHROMA_CLOUD_API_KEY`: ChromaDB Cloud API key (optional, for programmatic access)
 
 ## Architecture
 
